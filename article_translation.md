@@ -94,58 +94,61 @@ Preflight
         C с псевдонимами разных типов, использование `-fno-strict-aliasing`
         гораздо безопаснее, если вы не контролируете все дерево исходного кода
 
--   as of now, Clang reports some valid syntax as a warning, so you should
-    add`-Wno-missing-field-initializers`
+-   в настоящее время, Clang помечает некоторый верный синтаксис как
+    предупреждение, поэтому вам следует добавить
+    `-Wno-missing-field-initializers`
 
-    -   GCC fixed this unnecessary warning after GCC 4.7.0
+    -   GCC исправил это лишнее предупреждение после GCC 4.7.0
 
-Building
+Сборка
 
--   Compilation units
+-   Юниты компиляции
 
-    -   The most common way of building C projects is to decompose every source
-        file into an object file then link all the objects together at the end.
-        This procedure works great for incremental development, but it is
-        suboptimal for performance and optimization. Your compiler can't detect
-        potential optimization across file boundaries this way.  
+    -   Самый распространенный путь сборки проектов на C заключается в
+        разложении каждого исходного файла в объектный файл, а затем в
+        связывании всех объектов воедино в конце. Эта процедура отлично подходит
+        для итеративной разработки, но неприемлема для производительности и
+        оптимизации. Ваш компилятор не сможет найти потенциальную оптимизацию,
+        пока ваши файлы разделены таким образом.  
         
 
 -   LTO — Link Time Optimization
 
-    -   LTO fixes the "source analysis and optimization across compilation units
-        problem" by annotating object files with intermediate representation so
-        source-aware optimizations can be carried out across compilation units
-        at link time (this slows down the linking process noticeably, but `make
-        -j` helps).
+    -   LTO исправляет “проблему анализа и оптимизации всего юнита компиляции”
+        аннотируя объекты файлов промежуточным представлением, таким образом,
+        source-aware оптимизация может осуществляться сразу по компиляции юнитов
+        в процессе компоновки(это заметно замедляет процесс компоновки, но
+        помогает выполнению `make -j`)
 
     -   [clang
-        LTO](<http://llvm.org/docs/LinkTimeOptimization.html>) ([guide](<http://llvm.org/docs/GoldPlugin.html>))
+        LTO](<http://llvm.org/docs/LinkTimeOptimization.html>) ([гайд](<http://llvm.org/docs/GoldPlugin.html>))
 
     -   [gcc LTO](<https://gcc.gnu.org/onlinedocs/gccint/LTO-Overview.html>)
 
-    -   As of 2016, clang and gcc releases support LTO by just adding `-flto` to
-        your command line options during object compilation and final
-        library/program linking.
+    -   В 2016, clang и gcc выпустили поддержку LTO лишь добавлением `-flto` в
+        опции вашей командной строки в течение компиляции объекта и финальной
+        сборки библиотеки/программы.
 
-    -   `LTO` stil needs some babysitting though. Sometimes, if your program has
-        code not used directly but used by additional libraries, LTO can evict
-        functions or code because it detects, globally when linking, some code
-        is unused/unreachable and doesn't *need* to be included in the final
-        linked result.
+    -   Однако `LTO` все еще нуждается в некотором присмотре. Иногда, если если
+        в вашей программе есть код, не используемый непосредственно, но
+        используемый дополнительными библиотеками, LTO может удалить функции или
+        код, поскольку будет обнаружено, глобально при компоновке, что некоторый
+        код не используется/не достижим и не нуждается во включении в финальную
+        сборку.
 
 Arch
 
 -   `-march=native`
 
-    -   give the compiler permission to use your CPU's full feature set
+    -   дайте компилятору доступ к использованию полного набора функций CPU
 
-    -   again, performance testing and regression testing is important (then
-        comparing the results across multiple compilers and/or compiler
-        versions) is important to make sure any enabled optimizations don't have
-        adverse side effects.
+    -   Опять же, тестирование производительности и регрессионное тестирование
+        является важным (сравнение результатов нескольких компиляторов и/или
+        версий компилятора), чтобы убедиться в том, что любые доступные
+        оптимизации не имеют неблагоприятных побочных эффектов.
 
--   `-msse2` and `-msse4.2` may be useful if you need to target
-    not-your-build-machine features.
+-   `-msse2` и `-msse4.2` могут быть полезными, если необходимо ориентироваться
+    на ваши not-your-build-machine особенности.
 
 Writing code
 ------------
