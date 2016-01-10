@@ -1,89 +1,98 @@
-How to C in 2016
-================
+Как писать на С в 2016
+======================
 
-*This is a draft I wrote in early 2015 and never got around to publishing.
-Here's the mostly unpolished version because it wasn't doing anybody any good
-sitting in my drafts folder. The simplest change was updating year 2015 to 2016
-at publication time.*
+*Этот проект я написал в начале 2015 года, но у меня никак не доходили руки его
+опубликовать. Здесь достаточно сырая версия, поскольку проект не приносит
+никакой пользы другим людям, лежа у меня на компьютере. Простейшим изменением
+было обновление года с 2015 на 2016 во время публикации. *
 
-*Feel free to submit fixes/improvements/complaints as necessary.
--*[Matt](<mailto:matt@matt.sh>)
+При необходимости вносите исправления/улучшения/жалобы. -Matt.
 
-The first rule of C is don't write C if you can avoid it.
+ 
 
-If you must write in C, you should follow modern rules.
+Первое правило C состоит в том, чтобы не писать на нем, если этого можно
+избежать.
 
-C has been around since the [early
-1970s](<https://www.bell-labs.com/usr/dmr/www/chist.html>). People have "learned
-C" at various points during its evolution, but knowledge usually get stuck after
-learning, so everybody has a different set of things they believe about C based
-on the year(s) they first started learning.
+Если вам приходится писать на C, то вам следует придерживаться современных
+правил.
 
-It's important to not remain stuck in your "things I learned in the 80s/90s"
-mindset of C development.
+С появился где-то в начале 1970-х.
 
-This page assumes you are on a modern platform conforming to modern standards
-and you have no excessive legacy compatibility requirements. We shouldn't be
-globally tied to ancient standards just because some companies refuse to upgrade
-20 year old systems.
+Люди “выучивали С" в различные этапы его эволюции, но их знания заходили в тупик
+после изучения, потому как каждый обладал разными знаниями о С, которые
+датировались годом(годами), когда они впервые начали его изучение.
+
+При разработке на С очень важно не мыслить  понятиями, изученными в 80-90-хх
+годах.
+
+Эта статья предполагает, что вы используете современную платформу в соответствии
+с современным стандартами, и у вас нет чрезмерных требований к совместимости со
+старыми платформами. Мы не должны быть привязаны к древним стандартам, только
+потому что некоторые компании отказываются обновлять системы 20-летней давности.
+
+ 
 
 Preflight
 ---------
 
-Standard c99 (c99 means "C Standard from 1999"; c11 means "C Standard from
-2011", so 11 \> 99).
+Стандрат c99 (c99 звучит как “Стандарт С, принятый в 1999 году"; c11 means
+"Стандарт С, принятый в 2011 году", таким образом, 11 \> 99).
 
 -   clang, default
 
-    -   C99 is the default C implementation for clang, no extra options needed.
+    -   C99 является реализацией по умолчанию для clang, без дополнительных
+        опций
 
-    -   If you want C11, you need to specify `-std=c11`
+    -   Если вам нужен C11, то необходимо указать `-std=c11`
 
-    -   clang compiles your source files faster than gcc
+    -   clang компилирует ваши исходные файлы быстрее, чем gcc
 
--   gcc requires you specify `-std=c99` or `-std=c11`
+-   gcc требует указания `-std=c99` или `-std=c11`
 
-    -   gcc builds source files slower than clang, but *sometimes* generates
-        faster code. Performance comparisons and regression testings are
-        important.
+    -   gcc создает исходные файлы медленнее, чем clang, но *иногда* генерирует
+        более быстрый код. Сравнения производительности и регрессионное
+        тестирование важны.
 
-    -   gcc-5 defaults to `-std=gnu11`, but you should still specify a
-        non-GNU `c99` or `c11` for practical usage.
+    -   gcc-5 по умолчанию указывается как `-std=gnu11`, но вам все равно
+        следует указывать non-GNU c99 или c11 для практичного использования.
 
-Optimizations
+Оптимизации
 
 -   \-O2, -O3
 
-    -   generally you want `-O2`, but sometimes you want `-O3`. Test under both
-        levels (and across compilers) then keep the best performing binaries.
+    -   Обычно вам нужен `-O2`, но иногда требуется `-O3`. Протестируйте в
+        рамках обоих уровней (и по компиляторам) после чего сохраните самые
+        эффективные исполняемые файлы.
 
 -   \-Os
 
-    -   `-Os` helps if your concern is cache efficiency (which it should be)
+    -   `-Os` пригодится, если вы беспокоитесь об эффективности кэша (которая
+        должна быть)
 
-Warnings
+Предупреждения
 
 -   `-Wall -Wextra -pedantic`
 
-    -   [newer compiler
-        versions](<https://twitter.com/oliviergay/status/685389448142565376>) have `-Wpedantic`,
-        but they still accept the ancient `-pedantic` as well for wider
-        backwards compatibility.
+    -   новые версии компиляторы имеют параметр `-Wpedantic`, но они все еще
+        поддерживают древний параметр `-pedantic`, что хорошо для обратной
+        совместимости.
 
--   during testing you should add `-Werror` and `-Wshadow` on all your platforms
+-   во время тестирования вы должны добавить `-Werror` и `-Wshadow` на всех
+    ваших платформах
 
-    -   it can be tricky deploying production source using `-Werror` because
-        different platforms and compilers and libraries can emit different
-        warnings. You probably don't want to kill a user's entire build just
-        because their version of GCC on a platform you've never seen complains
-        in new and wonderous ways.
+    -   это очень коварное развертывание исходников с использованием `-Werror`,
+        потому что разные платформы, компиляторы и библиотеки могут испускать
+        различные предупреждения. Вы, наверное, не хотите убить всю сборку
+        пользователя лишь потому, что их версия GCC, на платформе, которую вы
+        никогда не видели, жалуется новыми и чудесными способами.
 
 -   extra fancy options include `-Wstrict-overflow -fno-strict-aliasing`
 
-    -   Either specify `-fno-strict-aliasing` or be sure to only access objects
-        as the type they have at creation. Since so much existing C code aliases
-        across types, using `-fno-strict-aliasing`is a much safer bet if you
-        don't control the entire underlying source tree.
+    -   Либо указывайте `-fno-strict-aliasing`  или будьте уверены, что к
+        объектам будут обращаться только в соответствии с типом, которые был
+        указан при их создании. Поскольку так много существующего кода на языке
+        C с псевдонимами разных типов, использование `-fno-strict-aliasing`
+        гораздо безопаснее, если вы не контролируете все дерево исходного кода
 
 -   as of now, Clang reports some valid syntax as a warning, so you should
     add`-Wno-missing-field-initializers`
