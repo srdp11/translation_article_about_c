@@ -150,134 +150,143 @@ Arch
 -   `-msse2` и `-msse4.2` могут быть полезными, если необходимо ориентироваться
     на ваши not-your-build-machine особенности.
 
-Writing code
-------------
+Описание кода
+-------------
 
-### Types
+### Типы
 
-If you find yourself
-typing `char` or `int` or `short` or `long` or `unsigned` into new code, you're
-doing it wrong.
+Если вы пишете `char`, `int`, `short`, `long`, `unsigned `в новом коде, то вы
+делаете неправильно.
 
-For modern programs, you should `#include <stdint.h>` then use *standard* types.
+В современных программах следует набрать `#include <stdint.h>`, а затем
+использовать стандартные типы.
 
-The common standard types are:
+Общие стандартные типы:
 
--   `int8_t`, `int16_t`, `int32_t`, `int64_t` — signed integers
+-   `int8_t`, `int16_t`, `int32_t`, `int64_t` — знаковые целочисленные
 
--   `uint8_t`, `uint16_t`, `uint32_t`, `uint64_t` — unsigned integers
+-   `uint8_t`, `uint16_t`, `uint32_t`, `uint64_t` — беззнаковые целочисленные
 
--   `float` — standard 32-bit floating point
+-   `float` — 32-битное число с плавающей точкой
 
--   `double` - standard 64-bit floating point
+-   `double` — 64-битное число с плавающей точкой
 
-Notice we don't have `char` anymore. `char` is actually misnamed and misused in
-C.
+Обратите внимание, что больше нет `char`. `char`, фактически, неверно названы и
+неправильно используются в C. 
 
-Developers routinely abuse `char` to mean "byte" even when they are doing
-unsigned byte manipulations. It's much cleaner to use `uint8_t` to mean single a
-unsigned-byte/octet-value and `uint8_t *` to mean
-sequence-of-unsigned-byte/octet-values.
+Разработчики постоянно злоупотребляют типом `char`, подразумевая под ним “байт”
+, даже кода производят беззнаковые байтовые манипуляции. Гораздо прозрачнее
+использовать `uint8_t` в значении одного беззнакового байта/восьмибитного
+значения и `uint8_t *` для обозначения последовательности беззнаковых
+байтов/восьмибитных значений.
 
-#### One Exception to never-`char`
+#### Исключение из правил —  `char`
 
-The *only* acceptable use of `char` in 2016 is if a pre-existing API
-requires `char` (e.g. `strncat`, printf'ing "%s", ...) or if you're initializing
-a read-only string (e.g. `const char *hello = "hello";`) because the C type of
-string literals (`"hello"`) is `char *`.
+Единственным допустимым использованием `char` в 2016 является использование уже
+существующего API, в котором необходим `char` (например, `strncat`, printf'ing
+"%s", …),
 
-ALSO: In C11 we have native unicode support, and the type of UTF-8 string
-literals is still `char *` even for multibyte sequences like `const char *abcgrr
-= u8"abc😬";`.
+или если вы инициализируете строку только для чтения (например, e.g. `const char
+*hello = "hello";`), потому что типом строковых литералов в C  являются `char
+*`.
 
-#### Signedness
+Также: в C11 у нас есть встроенная поддержка Юникода, тип UTF-8 для строковых
+литералов все еще `char *` даже для многобайтовых последовательностей, таких как
+`const char *abcgrr = u8"abc😬";`
 
-At no point should you be typing the word `unsigned` into your code. We can now
-write code without the ugly C convention of multi-word types that impair
-readability as well as usage. Who wants to type`unsigned long long int` when you
-can type `uint64_t`? The `<stdint.h>` types are more *explicit*, more*exact* in
-meaning, convey *intentions* better, and are more *compact* for
-typographic *usage* and *readability*.
+#### Знаковость
 
-But, you may say, "I need to cast pointers to `long` for dirty pointer math!"
+Ни в одном месте вашего кода вы не должны писать слово `unsigned`. Сейчас мы
+можем писать код без уродливых соглашений в C, касающейся типов из нескольких
+слов, которые препятствуют читаемости, а также использованию.  Кто захочет
+писать `unsigned long long int`, когда можно написать `uint64_t`? Типы
+`<stdint.h>` более явные, более понятные для восприятия, лучше передают смысл и
+более компактные для использования и читаемости при печати.
 
-You may say that. But you are wrong.
+Но вы можете сказать: “Мне нужно приводить указатели к типу `long` для трюка с
+математическим указателем!"
 
-The correct type for pointer math is `uintptr_t` defined in `<stddef.h>`.
+Вы можете так сказать. Но вы будете неправы.
 
-Instead of:
+Корректным типом для математического указателя является `uintptr_t` объявленный
+в `<stddef.h>`.
+
+Вместо:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 long diff = (long)ptrOld - (long)ptrNew;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use:
+Используйте:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ptrdiff_t diff = (uintptr_t)ptrOld - (uintptr_t)ptrNew;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#### System-Dependent Types
+#### Системо-зависимые типы
 
-You continue arguing, "on a 32 bit patform I want 32 bit longs and on a 64 bit
-platform I want 64 bit longs!"
+Вы продолжите спорить: “На 32-битной платформе мне нужен тип 32 bit long, а на
+64-битной -  64 bit longs!"
 
-If we skip over the line of thinking where you are *deliberately* introducing
-difficult to reason about code by using two different sizes depending on
-platform, you still don't want to use `long` for system-dependent types.
+Если мы опустим ход мыслей, при котором вы умышленно вносите трудности в код,
+используя два различных размера в зависимости от платформы, то вы по-прежнему не
+хотите использовать `long` для типов, зависимых от системы.
 
-In these situations, you should use `intptr_t` — the integer type defined to be
-the word size of your current platform.
+В этой ситуации вам следует использовать `intptr_t` — целочисленный тип, который
+определяет размер в зависимости от текущей платформы.
 
-On 32-bit platforms, `intptr_t` is `int32_t`.
+На 32-битных платформах, `intptr_t` является `int32_t`.
 
-On 64-bit platforms, `intptr_t` is `int64_t`.
+На 64-битных платформах `intptr_t` является `int64_t`.
 
-`intptr_t` also comes in a `uintptr_t` flavor.
+`intptr_t` также является разновидностью `uintptr_t`.
 
-For holding pointer offsets, we have the aptly named `ptrdiff_t` which is the
-proper type for storing values of subtracted pointers.
+Для смещения указателей, у нас есть емко названный  `ptrdiff_t`, который
+является надлежащим типом для хранений значений вычитаемых указателей.
 
-#### Maximum Value Holders
+#### Хранители максимальных значений
 
-Do you need an integer type capable of holding any integer usable on your
-system?
+Вам нужен целочисленный тип, способный удержать любое целое число, используемое
+в вашей системе?
 
-People tend to use the largest known type in this case, such as casting smaller
-unsigned types to`uint64_t`, but there's a more technically correct way to
-guarantee any value can hold any other value.
+Люди склоняются к использованию самого большого известного типа в их случае,
+такого как приведение меньшего беззнакового типа к `uint64_t`, но есть более
+технически правильный путь, гарантирующий, что любое значение может содержать в
+себе любое другое значение.
 
-The safest container for any integer is `intmax_t` (also `uintmax_t`). You can
-assign or cast any signed integer to `intmax_t` with no loss of precision, and
-you can assign or cast any unsigned integer to`uintmax_t` with no loss of
-precision.
+Безопаснейший контейнер для любых целочисленных типов -
+`intmax_t` (также `uintmax_t`).  Вы также можете присваивать или приводить любые
+знаковые/беззнаковые целочисленные типы к `intmax_t/uintmax_t` без потери
+точности.
 
-#### That Other Type
+#### Другие типы
 
-The most widely used system-dependent type is `size_t`.
+Самым широко используемым система-зависимым типом является `size_t`.
 
-`size_t` is defined as "an integer capable of holding the largest array index"
-which also means it's capable of holding the largest memory offset in your
-program.
+`size_t` определен как “целочисленный тип, способный хранить максимальную длину
+массива”, что также означает, что он способен хранить наибольшее смещение памяти
+в вашей программе.
 
-In practical use, `size_t` is the return type of `sizeof` operator.
+На практике `size_t` является возвращаемым типом оператора `sizeof`.
 
-In either case: `size_t` is *practically* defined to be the same
-as `uintptr_t` on all modern platforms, so on a 32-bit
-platform `size_t` is `uint32_t` and on a 64-bit platform `size_t` is `uint64_t`.
+В любом случае: `size_t`, как правило, определен так, чтобы быть таким же как и`
+uintptr_t` на всех современных системах, таким образом в 32-битной системе`
+size_t` является `uint32_t`, а на 64-битной - `uint64_t`.
 
-There is also `ssize_t` which is a signed `size_t` used as the return value from
-library functions that return `-1` on error. (Note: `ssize_t` is POSIX so does
-not apply to Windows interfaces.)
+Также есть `ssize_t`, который является знаковым `size_t`, используемым как
+возвращаемое значение из библиотечных функций, которые при ошибке возвращают
+`-1`. (Примечание: `ssize_t` является частью интерфейса POSIX’а, поэтому его
+нельзя применять к интерфейсам Windows.)
 
-So, should you use `size_t` for arbitrary system-dependent sizes in your own
-function parameters? Technically, `size_t` is the return type of `sizeof`, so
-any functions accepting a size value representing a number of bytes is allowed
-to be a `size_t`.
+Таким образом, должны ли вы использовать `size_t` для произвольных
+системо-зависимых размеров в аргументах вашей функции? Технически, `size_t`
+является типом, возвращаемым `sizeof`, таким образом, любые функции, принимающие
+в качестве аргумента значение размера в  байтах,  могут быть `size_t`.
 
-Other uses include: `size_t` is the type of the argument to malloc,
-and `ssize_t` is the return type of`read()` and `write()` (except on Windows
-where `ssize_t` doesn't exist and the return values are just`int`).
+Другие области применения: `size_t` является типом аргумента функции malloc,
+ `ssize_t` является возвращаемым типом функций `read()` и `write()` (за
+исключением Windows, где  `ssize_t` не существует и возвращаемыми значениями
+являются просто `int`).
 
 #### Printing Types
 
