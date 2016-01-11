@@ -550,10 +550,10 @@ restrict](<https://en.wikipedia.org/wiki/Restrict>) (также `__restrict`)
 
 ### Типы параметров
 
-If a function accepts **arbitrary** input data and a length to process, don't
-restrict the type of the parameter.
+Если функция принимает произвольные входные данные и длину, не накладывайте
+ограничение на тип аргумента:
 
-So, do NOT do this:
+Не делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void processAddBytesOverflow(uint8_t *bytes, uint32_t len) {
@@ -563,7 +563,7 @@ void processAddBytesOverflow(uint8_t *bytes, uint32_t len) {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do THIS instead:
+Вместо этого делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void processAddBytesOverflow(void *input, uint32_t len) {
@@ -575,33 +575,34 @@ void processAddBytesOverflow(void *input, uint32_t len) {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The input types to your functions describe the *interface* to your code, not
-what your code is doing with the parameters. The interface to the code above
-means "accept a byte array and a length", so you don't want to restrict your
-callers to only uint8\_t byte streams. Maybe your users even want to pass in
-old-style `char *` values or something else unexpected.
+Тип аргументов вашей функции описывает интерфейс вашего кода, а не то что код
+делает с аргументами. Интерфейс кода выше означает: “принимается массив байтов и
+его длина”. Но вы же не хотите ограничить вызывающих только потоком байтов
+uint8\_t. Может ваши пользователи даже хотят в старом стиле  использовать
+значение `char *` или что-то еще более неожиданное. Объявляя тип входных данных
+`void *` и используя приведение типов внутри функции, вы избавляете
+пользователей от мыслей об абстракциях внутри вашей библиотеки.
 
-By declaring your input type as `void *` and re-casting inside your function,
-you save the users of your function from having to think about
-abstractions *inside* your own library.
+ 
 
-### Return Parameter Types
+### Тип возвращаемых параметров 
 
-C99 gives us the power of `<stdbool.h>` which
-defines `true` to `1` and `false` to `0`.
+C99 дает нам силу библиотеки `<stdbool.h>`, которая определяет
+`true` как `1` и `false` как `0`.
 
-For success/failure return values, functions should return `true` or `false`,
-not an `int32_t` return type with manually specifying `1` and `0` (or
-worse, `1` and `-1` (or is it `0` success and `1` failure? or is it `0`success
-and `-1` failure?)).
+Для успешно/неуспешно возвращаемых значений, функция должна вернуть
+`true` или `false`, а не тип `int32_t` с ручным указанием `1` и `0` (или, что
+хуже, `1` и `-1` (или `0` — удача, а `1` — неудача? или `0` — удача, а `-1` —
+неудача?))
 
-If a function mutates an input parameter to the extent the parameter is
-invalidated, instead of returning the altered pointer, your entire API should
-force double pointers as parameters anywhere an input can be invalidated. Coding
-with "for some calls, the return value invalidates the input" is too error prone
-for mass usage.
+Если функция меняет аргумент в той степени, что он становится недействительным,
+то вместо возвращения измененного указателя ваш API должен создать двойные
+указатели в качестве параметров в тех местах, где аргументы могут стать
+недействительными. Код, написанный с девизом “для некоторых вызовов функции,
+возвращаемое значение может быть несовместимо с входным параметром”, подвержен
+ошибкам при массовом использовании.
 
-So, do NOT do this:
+Не делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void *growthOptional(void *grow, size_t currentLen, size_t newLen) {
@@ -621,7 +622,7 @@ void *growthOptional(void *grow, size_t currentLen, size_t newLen) {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do THIS instead:
+Вместо этого делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /* Return value:
@@ -651,7 +652,7 @@ bool growthOptional(void **_grow, size_t currentLen, size_t newLen) {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Or, even better, Do THIS instead:
+Или даже лучше так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 typedef enum growthResult {
@@ -678,7 +679,7 @@ growthResult growthOptional(void **_grow, size_t currentLen, size_t newLen) {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### Formatting
+### Форматирование
 
 Coding style is simultaenously very important and utterly worthless.
 
