@@ -290,10 +290,10 @@ size_t` является `uint32_t`, а на 64-битной - `uint64_t`.
 
 #### Printing Types
 
-You should never cast types during printing. You should use proper type
-specifiers.
+Вы никогда не должны приводить типы при выводе. Следует использовать правильные
+типовые спецификаторы.
 
-These include, but are not limited to:
+Вот некоторые примеры:
 
 -   `size_t` - `%zu`
 
@@ -301,19 +301,20 @@ These include, but are not limited to:
 
 -   `ptrdiff_t` - `%td`
 
--   raw pointer value - `%p` (prints hex value; cast your pointer to `(void
-    *)` first)
+-   исходное значение указателя - `%p` (выводит шестнадцатиричное
+    значение;сначала приведите ваш указатель к `(void *)`)
 
--   64-bit types should be printed using `PRIu64` (unsigned)
-    and `PRId64` (signed)
+-   64-битные типы должны выводиться с помощью `PRIu64` (беззнаковый)
+    и `PRId64` (знаковый)
 
-    -   on some platforms a 64-bit value is a `long` and on others it's a `long
-        long`
+    -   на некоторых платформах 64-битное значение является типом `long` ,
 
-    -   it is actualy impossible to specify a correct cross-platform format
-        string without these format macros because the types change out from
-        under you (and remember, casting values before printing is not safe or
-        logical).
+    а на других — `long long`
+
+    -   на самом деле, невозможно определить правильный формат
+        кросс-платформенной строки без этих форматирующих макросов, потому что
+        типы меняются под вас (и помните: приведение значения до вывода не
+        является безопасным или логичным)
 
 -   `intptr_t` — `"%" PRIdPTR`
 
@@ -323,22 +324,22 @@ These include, but are not limited to:
 
 -   `uintmax_t` — `"%" PRIuMAX`
 
-One note about the `PRI*` formatting specifiers: they are *macros* and the
-macros expand to proper printf type specifiers on a platform-specific basis.
-This means you can't do:
+Небольшое примечание о спецификаторах форматирования `PRI*`: они являются
+макросами, расширяющими соответствующие спецификаторы типа printf на основе
+текущей системы. Это означает, что вы не сможете сделать так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 printf("Local number: %PRIdPTR\n\n", someIntPtr);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-but instead, because they are macros, you do:
+но в силу того, что они макросы, вы сможете сделать:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 printf("Local number: %" PRIdPTR "\n\n", someIntPtr);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Notice you put the '%' *inside* your format string, but the type specifier
-is *outside* your format string.
+Обратите внимание, что ‘%’ находится внутри форматирующей строки, но тип
+спецификатора находится вне форматирующей строки.
 
 ### C99 allows variable declarations anywhere
 
