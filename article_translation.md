@@ -341,9 +341,9 @@ printf("Local number: %" PRIdPTR "\n\n", someIntPtr);
 Обратите внимание, что ‘%’ находится внутри форматирующей строки, но тип
 спецификатора находится вне форматирующей строки.
 
-### C99 allows variable declarations anywhere
+### C99 позволяет объвлять переменные в любом месте
 
-So, do NOT do this:
+Не делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void test(uint8_t input) {
@@ -357,7 +357,7 @@ void test(uint8_t input) {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-do THIS instead:
+Вместо этого делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void test(uint8_t input) {
@@ -369,15 +369,18 @@ void test(uint8_t input) {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Caveat: if you have tight loops, test the placement of your initializers.
-Sometimes scattered declarations can cause unexpected slowdowns. For regular
-non-fast-path code (which is most of everything in the world), it's best to be
-as clear as possible, and defininig types next to your initializations is a big
-readability improvement.
+Предостережение: если у вас небольшие иттерации, то проверьте расположение ваших
+инициализаторов. Иногда разрозненные объявления переменных могут привести к
+неожиданным замедлениям. Для регулярно используемого кода, который не является
+самым быстрым (а такого в мире больше всего), лучше, чтобы он был как можно
+более четким, поэтому определение типа переменной рядом с ее инициализаций
+является большим шагом к удобочитаемости.
 
 ### C99 allows `for` loops to declare counters inline
 
-So, do NOT do this:
+### С99 позволяет `for` создать счетчики при объявлении цикла
+
+Не делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     uint32_t i;
@@ -385,18 +388,18 @@ So, do NOT do this:
     for (i = 0; i < 10; i++)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do THIS instead:
+Вместо этого делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     for (uint32_t i = 0; i < 10; i++)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-One exception: if you need to retain your counter value after the loop exits,
-obviously don't declare your counter scoped to the loop itself.
+Единственное исключение: если вам необходимо сохранить значение счетчика после
+выхода из цикла, очевидно, что необходимо объявить счетчик перед циклом.
 
-### Modern compilers support `#pragma once`
+### Современные компиляторы поддерживают `#pragma once`
 
-So, do NOT do this:
+Не делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #ifndef PROJECT_HEADERNAME
@@ -407,38 +410,38 @@ So, do NOT do this:
 #endif /* PROJECT_HEADERNAME */
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do THIS instead:
+Вместо этого делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #pragma once
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-`#pragma once` tells the compiler to only include your header once and you *do
-not* need three lines of header guards anymore. This pragma is widely supported
-across all compilers across all platforms and is recommended over manually
-naming header guards.
+`#pragma once` говорит компилятору включать ваш заголовок только один раз, и вам
+больше не нужно писать три строчки header guards. Эта прагма широко
+поддерживается всеми компиляторами на всех платформах и рекомендуется к
+использованию вместо header guards.
 
-For more details, see list of supported compilers at [pragma
-once](<https://en.wikipedia.org/wiki/Pragma_once>).
+Для более детального ознакомления смотрите список компиляторов, поддерживающих
+[pragma once](<https://en.wikipedia.org/wiki/Pragma_once>).
 
-### C allows static initialization of auto-allocated arrays
+### C позволяет использовать статическую инициализацию массивов 
 
-So, do NOT do this:
+Никогда не делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     uint32_t numbers[64];
     memset(numbers, 0, sizeof(numbers));
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do THIS instead:
+Вместо этого делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     uint32_t numbers[64] = {0};
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### C allows static initialization of auto-allocated structs
+### C позволяет использовать статическую инициализацию структур
 
-So, do NOT do this:
+Никогда не делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     struct thing {
@@ -453,7 +456,7 @@ So, do NOT do this:
     }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do THIS instead:
+Вместо этого делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     struct thing {
@@ -464,8 +467,8 @@ Do THIS instead:
     struct thing localThing = {0};
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you need to re-initialize already allocated structs, declare a global
-zero-struct for later assignment:
+Если вам надо переобъявить уже существующую структуру, то объявите глобальную
+нулевую структуру для дальнейшего присваивания:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     struct thing {
@@ -484,9 +487,9 @@ zero-struct for later assignment:
     localThing = localThingNull;
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### C99 allows variable length array initializers
+### C99 поддерживает инициализацию массивов с переменной длиной
 
-So, do NOT do this:
+Никогда не делайте так:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     uintmax_t arrayLength = strtoumax(argv[1], NULL, 10);
@@ -497,7 +500,7 @@ So, do NOT do this:
     /* remember to free(array) when you're done using it */
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do THIS instead:
+Вместо этого делайте так:у
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     uintmax_t arrayLength = strtoumax(argv[1], NULL, 10);
@@ -506,43 +509,46 @@ Do THIS instead:
     /* no need to free array */
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**IMPORTANT CAVEAT:** variable length arrays are (usually) stack allocated just
-like regular arrays. If you wouldn't create a 3 million element regular array
-statically, don't attempt to create a 3 million element array at runtime using
-this syntax. These are not scalable python/ruby auto-growing lists. If you
-specify a runtime array length and the length is too big for your stack, your
-program will do awful things (crashes, security issues). Variable Length Arrays
-are convienient for small, single-purpose situations, but should not be relied
-on at scale in production software. If sometimes you need a 3 element array and
-other times a 3 million element array, definitely do not use the variable length
-array capability.
+**Важное примечание:** массивы переменной длины (обычно) располагаются также,
+как и обычные массивы. Если вы не хотите создавать статический массив на 3
+миллиона элементов, не пытайтесь создать массива на 3 миллиона элемента во время
+работы программы, используя этот синтаксис. Это не саморасширяемые списки из
+python/ruby. Если вы указываете длину массива переменной длины и длина слишком
+большая для вашего стека, то ваша программа будет творить ужасные вещи (вылеты,
+проблемы с  безопасностью). Массивы переменной длины удобны для небольших
+узкоспециализированных ситуаций, но не следует доверять им при масштабной
+разработке программного обеспечения. Если когда-то вам понадобится массив на 3
+элемента, а когда-то - на 3 миллиона, определенно не стоит использовать массивы
+переменной длины.
 
-It's good to be aware of the VLA syntax in case you encounter it live (or want
-it for quick one-off testing), but it can almost be considered a [dangerous
-anti-pattern](<https://twitter.com/grynspan/status/685509158024691712>) since
-you can crash your programs fairly simple by forgetting element size bounds
-checks or by forgetting you are on a strange target platform with no free stack
-space.
+Хорошо быть осведомленным о синтаксисе массивов переменной длины в случае
+столкновения с ними в жизни (или при использовании его при быстром одноразовом
+тестировании), но их применение можно считать опасным анти-паттерном, так как вы
+можете довольно просто внести фатальные ошибки в работу вашей программы, просто
+забыв проверить условие выхода за границу массива, или забыть, что находитесь на
+чужой целевой платформе, где в стеке отсутствует свободное пространство.
 
-NOTE: You must be certain `arrayLength` is a reasonable size in this situation.
-(i.e. less than a few KB, sometime your stack will max out at 4 KB on weird
-platforms). You can't stack allocate *huge* arrays (millions of entries), but if
-you know you have a limited count, it's much easier to use [C99
-VLA](<https://en.wikipedia.org/wiki/Variable-length_array>)capabilities rather
-than manually requesting heap memory from malloc.
+Примечание: вы должны быть уверены, что `arrayLength` - это подходящая длина
+массива в данной ситуации (то есть меньше, чем несколько килобайт; ваш стек не
+должен когда-нибудь стать больше 4 килобайт на сторонних платформах). Вы не
+можете создавать огромные массивы (на миллионы элементов), но если вы знаете,
+что у вас есть ограниченное количество элементов, то лучше использовать
+возможности [C99 VLA], чем выделять память вручную с помощью malloc.
 
-DOUBLE NOTE: there is no user input checking above, so the user can easily kill
-your program by allocating a giant VLA. [Some
-people](<https://twitter.com/comex/status/685423016981966848>) go as far to call
-VLAs an anti-pattern, but if you keep your bounds tight, it can be a tiny win in
-certain situations.
+Второе примечание: здесь нет проверки пользовательского ввода, поэтому
+пользователь легко может положить вашу программу путем создания большого
+динамического массива. [Некоторые люд
+](<https://twitter.com/comex/status/68542301698196684>)пошли так далеко, что
+называют использование динамических массивов анти-паттернов, но если вы четко
+следите за границами массива, то это будет крохотной победой в определенных
+ситуациях.
 
-### C99 allows annotating non-overlapping pointer parameters
+### С99 позволяет аннотировать неперекрывающиеся параметры указателя
 
-See the [restrict
-keyword](<https://en.wikipedia.org/wiki/Restrict>) (often `__restrict`)
+Смотри [ключевое слово
+restrict](<https://en.wikipedia.org/wiki/Restrict>) (также `__restrict`)
 
-### Parameter Types
+### Типы параметров
 
 If a function accepts **arbitrary** input data and a length to process, don't
 restrict the type of the parameter.
