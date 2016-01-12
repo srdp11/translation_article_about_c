@@ -679,21 +679,20 @@ growthResult growthOptional(void **_grow, size_t currentLen, size_t newLen) {
 }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### Форматирование
+### Оформление кода
 
-Coding style is simultaenously very important and utterly worthless.
+Стиль кода одновременно очень важен и абсолютно бесполезен. Если в вашем проекте
+50 страниц посвящено правилам оформления кода, то никто не будет вам помогать.
+Но если ваш код нечитаем, то никто не *захочет* помогать вам.
 
-If your project has a 50 page coding style guideline, nobody will help you. But,
-if your code isn't readable, nobody will *want* to help you.
+Решение этой проблемы заключается в **постоянном **использовании автокорректора
+кода.
 
-The solution here is to **always** use an automated code formatter.
+Для форматирования кода на С в 2016 году стоит использовать [clang-format].
+clang-format имеет наиболее подходящие параметры по умолчанию для автокорректор
+C и в данное время он продолжает активно развиваться.
 
-The only usable C formatter as of 2016
-is [clang-format](<http://clang.llvm.org/docs/ClangFormat.html>). clang-format
-has the best defaults of any automatic C formatter and is still actively
-developed.
-
-Here's my preferred script to run clang-format with good parameters:
+Вот мой скрипт для запуска форматирования clang с хорошими параметрами:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #!/usr/bin/env bash
@@ -701,17 +700,18 @@ Here's my preferred script to run clang-format with good parameters:
 clang-format -style="{BasedOnStyle: llvm, IndentWidth: 4, AllowShortFunctionsOnASingleLine: None, KeepEmptyLinesAtTheStartOfBlocks: false}" "$@"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Then call it as (assuming you named the script `cleanup-format`):
+Теперь вызовем его (предполагаем, что вы назвали скрипт `cleanup-format`):
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 matt@foo:~/repos/badcode% cleanup-format -i *.{c,h,cc,cpp,hpp,cxx}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The `-i` option overwrites existing files in place with formatting changes
-instead of writing to new files or creating backup files.
+Параметр  `-i` позволяет перезаписывать существующие файлы в местах их
+изменения, а не записывать изменения в новые файлы или создавать резервные копии
+файлов.
 
-If you have many files, you can recursively process an entire source tree in
-parallel:
+Если у вас много файлов, то вы можете рекурсивно обрабатывать все дерево
+исходного кода параллельно:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #!/usr/bin/env bash
@@ -725,7 +725,7 @@ find . \( -name \*.c -or -name \*.cpp -or -name \*.cc \) |xargs -n1 -P4 cleanup-
 find . \( -name \*.c -or -name \*.cpp -or -name \*.cc -or -name \*.h \) |xargs -n12 -P4 cleanup-format -i
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Now, there's a new cleanup-tidy script there. The contents of `cleanup-tidy` is:
+Вот новый скрипт для очистки. Содержимое файла `cleanup-tidy`:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #!/usr/bin/env bash
@@ -739,80 +739,86 @@ clang-tidy \
     -- -I.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[clang-tidy](<http://clang.llvm.org/extra/clang-tidy/>) is policy driven code
-refactoring tool. The options above enable two fixups:
+[clang-tidy](<http://clang.llvm.org/extra/clang-tidy/>) — это инструмент
+управления рефакторингом кода. Настройки выше включат в себя два исправления:
 
--   `readability-braces-around-statements` — force
-    all `if`/`while`/`for` statement bodies to be enclosed in braces
+-   `readability-braces-around-statements` — принуждает все тела
+    операторов `if`/`while`/`for` быть заключенными в фигурные скобки
 
-    -   It's an accident of history for C to have "brace optional" single
-        statements after loop constructs and conditionals. It
-        is *inexcusable* to write modern code without braces enforced on every
-        loop and every conditional. Trying to argue "but, the compiler accepts
-        it!" has*nothing* to do with the readabiltiy, maintainability,
-        understandability, or skimability of code. You aren't programming to
-        please your compiler, you are programming to please future people who
-        have to maintain your current brain state years after everybody has
-        forgotten why anything exists in the first place.
+    -   Наличие фигурных скобок в С после конструкций циклов и условий есть
+        историческая случайность. Непростительно написать современный код без
+        скобок после каждого цикла и условия. Аргументы вроде “Но компилятор
+        принимает это” не имеют ничего общего с читаемостью,
+        ремонтопригодностью, прозрачностью кода. Вы не программируете, упрашивая
+        компилятор, вы программируете, чтобы угодить людям, которые будут
+        улавливать ваш ход мысли после того, как все уже забыли, почему в коде
+        все устроено именно так.
 
--   `misc-macro-parentheses` — automatically add parens around all parameters
-    used in macro bodies
+-   `misc-macro-parentheses` — автоматически добавляет скобки вокруг всех
+    параметров, использующихся в телах макросов
 
-`clang-tidy` is great when it works, but for some complex code bases it can get
-stuck. Also, `clang-tidy`doesn't *format*, so you need to
-run `clang-format` after you tidy to align new braces and reflow macros.
+`clang-tidy` — это здорово, когда он работает, но для некоторых сложных систем
+он может дать сбой. Кроме того `clang-tidy` не является форматом, поэтому вам
+необходимо запустить `clang-format` после того, как вы выровняли скобки и
+переформатировали текст макросов.
+
+ 
 
 ### Readability
 
 *the writing seems to start slowing down here...*
 
-#### Comments
+#### Комментарии
 
-logical self-contained portions of code file
+Логические описание автономных частей кода
 
-#### File Structure
+#### Структура файла
 
-Try to limit files to a max of 1,000 lines (1,500 lines in really bad cases). If
-your tests are in-line with your source file (for testing static functions,
-etc), adjust as necessary.
+Старайтесь, чтобы в файле было не больше 1000 строк (1500 строк это не очень
+хороший выбор).
+
+Try to limit files to a max of 1,000 lines (1,500 lines in really bad cases).
+Если ваши тесты находятся на одной линией с вашим исходным файлом, (для
+тестирования статических функций и.т.д.), то отрегулируйте их при необходимости.
 
 ### misc thoughts
 
-#### Never use `malloc`
+#### Никогда не используйте `malloc`
 
-You should always use `calloc`. There is no performance penalty for getting
-zero'd memory. If you don't like the function protype of `calloc(object count,
-size per object)` you can wrap it with`#define mycalloc(N) calloc(1, N)`.
+Всегда используйте `calloc`. Вы не потеряете в производительности при одинаковых
+затратах памяти. Если вам не нравится прототип `calloc(object count, size per
+object)`, то вы можете сделать обертку `#define mycalloc(N) calloc(1, N)`.
 
-Readers have commented on a few things here:
+Читатели отметили несколько вещей:
 
--   `calloc` *does* have a performance impact for **huge** allocations
+-   `calloc` более производителен при работе с большими выделениями памяти
 
--   `calloc` *does* have a performance impact on weird platforms (minimal
-    embedded systems, game consoles, 30 year old hardware, ...)
+-   `calloc` более проивзодителен при работе на других платформах (небольшие
+    встраиваемые системы, игровые консоли, аппаратные средства 30-летней
+    давности ...)
 
--   wrapping `calloc(element count, size of each element)` is not always a good
-    idea.
+-   обертывать `calloc(element count, size of each element)` не всегда хорошая
+    идея
 
--   a good reason to avoid `malloc()` is it can't check for integer overflow and
-    is a potential security risk
+-   хороший способ избежать использования `malloc()` без проверки переполнения и
+    потенциальных угроз безопасности
 
-Those are good points, and that's why we always must do performance testing and
-regression testing for speed across compilers, platforms, operating systems, and
-hardware devices.
+Это хорошие качества, и именно поэтому мы всегда должны производить тестирование
+производительности и регрессионное тестирование  для достижения скорости в обход
+компиляторов, платформ, оперативных систем и устройств.
 
-One advantage of using `calloc()` directly without a wrapper is,
-unlike `malloc()`, `calloc()` can check for integer overflow because it
-multiplies its arguments together to obtain your final allocation size. If you
-are only allocating tiny things, wrapping `calloc()` is fine. If you are
-allocating potentially unbounded streams of data, you may want to retain the
-regular`calloc(element count, size of each element)` calling convention.
+Одно из преимуществ использования `calloc()` непосредственно без обертки, в
+отличии от `malloc()`, `calloc()` может проверить переполнение целого числа,
+потому что он умножает свои аргументы вместе, чтобы получить окончательный
+размер кластера. Если вы выделяете немного памяти, то обертка  `calloc()`
+возможна. Если вы выделяете потенциально неограниченный поток данных, то вы
+можете сохранить для использования обертку `calloc(element count, size of each
+element)`.
 
-No advice can be universal, but trying to give *exactly perfect* generic
-recommendations would end up reading like a book of language specifications.
+Нет универсальных подходов, но можно попытаться  дать некоторые универсальные
+советы, которые будут в конечном итоге, как книга по спецификациям языка.
 
-For references on how `calloc()` gives you clean memory for free, see these nice
-writeups:
+Для справки о том, как `calloc()` высвобождает память, посмотрите эти заметки:
 
 -   [Benchmarking fun with calloc() and zero pages
     (2007)](<https://blogs.fau.de/hager/archives/825>)
@@ -820,11 +826,11 @@ writeups:
 -   [Copy-on-write in virtual memory
     management](<https://en.wikipedia.org/wiki/Copy-on-write#Copy-on-write_in_virtual_memory_management>)
 
-I still stand by my recommendation of always using `calloc()` for most common
-scenarios of 2016 (assumption: x64 target platforms, human-sized data, not
-including human genome-sized data). Any deviations from "expected" drag us into
-the pit of despair of "domain knowledge," which are words we shan't speak this
-day.
+Я остаюсь при своем мнении о постоянном использовании `calloc()` для обычных
+задача в 2016 (предположение: x64 ориентированные платформы, данные человеческих
+размеров, не включая размеров человеческих геномов). Любые отклонения от
+ожидаемого втянут вас в яму отчаяния под названием “знания домена”, о которых мы
+сегодня говорить не будем.
 
 Subnote: The pre-zero'd memory delivered to you by `calloc()` is a one-shot
 deal. If you `realloc()`your `calloc()` allocation, the grown memory extended by
@@ -833,14 +839,14 @@ whatever regular uninitialized contents your kernel provides. If you need zero'd
 memory after a realloc, you must manually `memset()` the extent of your grown
 allocation.
 
-#### Never memset (if you can avoid it)
+#### Не используйте memset (если вы можете этого избежать)
 
-Never `memset(ptr, 0, len)` when you can statically initialize a structure (or
-array) to zero (or reset it back to zero by assigning from a global zero'd out
-structure).
+Не используйте  `memset(ptr, 0, len)` когда вы можете статически
+инициализировать структуру (или массив) нулем (или сбросить к 0 присваиванием
+глобальной нулевой структуры)
 
-Learn More
-----------
+Смотрите также
+--------------
 
 Also see [Fixed width integer types (since
 C99)](<http://en.cppreference.com/w/c/types/integer>)
@@ -865,15 +871,16 @@ Also see [Modern
 C](<http://icube-icps.unistra.fr/img_auth.php/d/db/ModernC.pdf>) by Jens Gustedt
 at Inria.
 
-### Closing
+### Заключение
 
-Writing correct code at scale is essentially impossible. We have multiple
-operating systems, runtimes, libraries, and hardware platforms to worry about
-without even considering things like random bit flips in RAM or our block
-devices lying to us with unknown probability.
+Написание правильного кода в больших масштабах практически невозможно. У нас
+есть несколько операционных систем , рантаймов, библиотек и аппаратных платформ,
+которые имеют свои проблемы, даже без учета такой вещи, как случайно
+инвертированный бит в памяти или отказ устройств с неизвестной нам вероятностью.
 
-The best we can do is write simple, understandable code with as few indirections
-and as little undocumented magic as possible.
+Лучшее, что мы можем сделать - это написать простой, понятный код с
+минималистичными отклонениями и недокументироваными хитростями настолько,
+насколько это возможно.
 
 \-[Matt](<mailto:matt@matt.sh>) — [\@mattsta](<https://twitter.com/mattsta>) — [☁mattsta](<https://github.com/mattsta>)
 
